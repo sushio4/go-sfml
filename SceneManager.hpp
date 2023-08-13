@@ -10,12 +10,16 @@ class SceneManager {
         auto removeScene(std::string sceneName) -> bool;
         auto changeScene(std::string sceneName) -> bool;
 
+        inline auto scene() -> Scene* {
+            return currentScene;
+        }
+
         SceneManager(sf::RenderWindow* renderWindow);
         ~SceneManager();
 
     private:
         std::vector<Scene*> scenes;
-        Scene* currentScene;
+        Scene* currentScene = nullptr;
 
         sf::RenderWindow* window;
 
