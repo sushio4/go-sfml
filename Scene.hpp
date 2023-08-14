@@ -4,12 +4,21 @@
 
 #include "SceneManager.hpp"
 
+class SceneManager;
 
 class Scene {
     public:
         virtual auto drawScene() -> void = 0;
         virtual auto updateScene(double deltaTime) -> void = 0;
-        virtual auto processEvent(sf::Event& event) -> void = 0;
+
+        virtual auto processEvent(sf::Event& event) -> void {
+            if(event.type == sf::Event::Closed) window->close();
+        }
+
+        Scene(std::string name, sf::RenderWindow* window) {
+            this->name = name;
+            this->window = window;
+        }
 
         auto init(SceneManager* newParent, sf::RenderWindow* renderWindow) -> bool {
             if(parent || window) return false;

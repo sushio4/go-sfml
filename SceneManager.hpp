@@ -4,8 +4,11 @@
 #include <SFML/Graphics.hpp>
 #include "Scene.hpp"
 
+class Scene;
+
 class SceneManager {
     public:
+        //takes ownership of a scene
         auto addScene(Scene* newScene) -> bool;
         auto removeScene(std::string sceneName) -> bool;
         auto changeScene(std::string sceneName) -> bool;
