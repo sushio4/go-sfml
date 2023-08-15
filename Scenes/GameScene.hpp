@@ -12,8 +12,19 @@ class GameScene : public Scene {
         auto updateSizes() -> void;
 
     private:
+        auto pixelToFieldCoordinates(int& x, int& y) -> void;
+
         int boardsize;
         int squaresize;
         int offsetx, offsety;
         sf::Vector2u wsize;
+
+        enum Field : char {
+            null, black, white
+        };
+
+        Field* board = nullptr;
+        bool blackturn = true;
+        int highlightedx = -1;
+        int highlightedy = -1;
 };
