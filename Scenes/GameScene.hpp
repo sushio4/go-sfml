@@ -1,5 +1,8 @@
 #pragma once
 #include "../Scene.hpp"
+#include "PassButton.hpp"
+
+class PassButton;
 
 class GameScene : public Scene {
     public:
@@ -26,11 +29,16 @@ class GameScene : public Scene {
         int squaresize;
         int offsetx, offsety;
         sf::Vector2u wsize;
+        sf::Font font;
 
         Field* board = nullptr;
         bool* visited = nullptr;
 
+        friend class PassButton;
+        PassButton passbtn;
+
         bool blackturn = true;
+        int consecutivePasses = 0;
         int highlightedx = -1;
         int highlightedy = -1;
 };

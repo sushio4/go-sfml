@@ -1,10 +1,12 @@
 #include "GameScene.hpp"
 #include "../Scene.hpp"
 
-GameScene::GameScene(std::string name, sf::RenderWindow* window, int bsize) : Scene(name, window) {
+GameScene::GameScene(std::string name, sf::RenderWindow* window, int bsize) : 
+        Scene(name, window), passbtn(*this, {float(100), float(50)}) {
     boardsize = bsize;
     board = new Field[boardsize * boardsize];
     visited = new bool[boardsize * boardsize];
+    if(!font.loadFromFile("default.otf")) exit(0);
 
     for(int i = 0; i < boardsize * boardsize; i++)
         board[i] = null, visited[i] = false;
@@ -14,9 +16,11 @@ GameScene::GameScene(std::string name, sf::RenderWindow* window, int bsize) : Sc
 
 auto GameScene::updateSizes() -> void {
     wsize = window->getSize();
-    squaresize = (wsize.x > wsize.y ? wsize.y : wsize.x) / (boardsize + 2);
+    squaresize = (wsize.x > wsize.y ? wsize.y : wsize.x) / (boardsize + 3);
     offsetx = 0.5 * (wsize.x - (boardsize - 1) * squaresize);
-    offsety = 0.5 * (wsize.y - (boardsize - 1) * squaresize);
+    offsety = 0.5 * (wsize.y - (boardsize) * squaresize);
+
+    passbtn.setPosition({wsize.x / 2 - 50, (boardsize + 1) * squaresize});
 }
 
 auto GameScene::drawScene() -> void {
@@ -71,6 +75,8 @@ auto GameScene::drawScene() -> void {
             circle.setPosition(pieceoffsetx + x * squaresize, pieceoffsety + y * squaresize);
             window->draw(circle);
         }
+
+    passbtn.draw();
 }
 
 auto GameScene::updateScene(double deltaTime) -> void {}
@@ -97,6 +103,8 @@ auto GameScene::processEvent(sf::Event& ev) -> void {
     if(ev.type == sf::Event::MouseButtonReleased) {
         int mousex = ev.mouseButton.x;
         int mousey = ev.mouseButton.y;
+        if(passbtn.tryClick(mousex, mousey)) return;
+
         pixelToFieldCoordinates(mousex, mousey);
 
         if(mousex < 0 || mousex >= boardsize ||
@@ -106,6 +114,7 @@ auto GameScene::processEvent(sf::Event& ev) -> void {
         Field placed = blackturn ? black : white;
         board[mousex + mousey * boardsize] = placed;
         blackturn = !blackturn;
+        consecutivePasses = 0;
 
         //(3 - color) changes black to white and vice versa
         Field enemy = Field(3 - placed);
