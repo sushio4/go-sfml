@@ -9,8 +9,6 @@ GameScene::GameScene(std::string name, sf::RenderWindow* window, int bsize) : Sc
     for(int i = 0; i < boardsize * boardsize; i++)
         board[i] = null, visited[i] = false;
 
-    board[50] = white;
-
     updateSizes();
 }
 
