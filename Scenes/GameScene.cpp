@@ -4,8 +4,10 @@
 GameScene::GameScene(std::string name, sf::RenderWindow* window, int bsize) : Scene(name, window) {
     boardsize = bsize;
     board = new Field[boardsize * boardsize];
+    visited = new bool[boardsize * boardsize];
+
     for(int i = 0; i < boardsize * boardsize; i++)
-        board[i] = null;
+        board[i] = null, visited[i] = false;
 
     board[50] = white;
 
@@ -103,14 +105,19 @@ auto GameScene::processEvent(sf::Event& ev) -> void {
             mousey < 0 || mousey >= boardsize ||
             board[mousex + mousey * boardsize] != null) return;
 
-        if(blackturn){
-            board[mousex + mousey * boardsize] = black;
-            blackturn = false;
-        }
-        else {
-            board[mousex + mousey * boardsize] = white;
-            blackturn = true;
-        }
+        Field placed = blackturn ? black : white;
+        board[mousex + mousey * boardsize] = placed;
+        blackturn = !blackturn;
+
+        //(3 - color) changes black to white and vice versa
+        Field enemy = Field(3 - placed);
+        checkForCapture(mousex + 1, mousey, enemy);
+        checkForCapture(mousex - 1, mousey, enemy);
+        checkForCapture(mousex, mousey + 1, enemy);
+        checkForCapture(mousex, mousey - 1, enemy);
+
+        //auto-capture
+        checkForCapture(mousex, mousey, placed);
     }
 }
 
@@ -125,4 +132,52 @@ auto GameScene::pixelToFieldCoordinates(int& x, int& y) -> void {
 
     x /= squaresize;
     y /= squaresize;
+}
+
+auto GameScene::hasLiberties(int x, int y, Field checkedColor) -> bool {
+        //outside the board
+    if(x >= boardsize || y >= boardsize || x < 0 || y < 0 ||
+        //enemy's stone => dead end
+        //(3 - color) changes black to white and vice versa efficiently
+        board[x + boardsize * y] == Field(3 - checkedColor) || 
+        //already visited field
+        visited[x + boardsize * y])
+        return false;
+
+    //finally empty intersection!
+    else if(board[x + boardsize * y] == null) 
+        return true;
+
+    visited[x + y * boardsize] = true;
+    //recursion alert
+    //if it's neither dead end nor liberty, let's check adjacent intersections
+    return (hasLiberties(x + 1, y, checkedColor) ||
+            hasLiberties(x - 1, y, checkedColor) ||
+            hasLiberties(x, y + 1, checkedColor) ||
+            hasLiberties(x, y - 1, checkedColor));
+}
+
+auto GameScene::clearVisited(bool capture) -> void {
+    if(!capture) {
+        for(int i = 0; i < boardsize * boardsize; i++) 
+            visited[i] = false;
+        
+        return;
+    }
+
+    for (int i = 0; i < boardsize * boardsize; i++) {
+        if (visited[i])
+            board[i] = null;
+
+        visited[i] = false;
+    }
+}
+
+auto GameScene::checkForCapture(int x, int y, Field target) -> void {
+    //check if it's a valid field and if there's target here
+    if(x < 0 || y < 0 || x >= boardsize || y >= boardsize ||
+        board[x + y * boardsize] != target) 
+            return;
+
+    clearVisited(!hasLiberties(x, y, target));
 }
